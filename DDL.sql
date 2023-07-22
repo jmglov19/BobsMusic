@@ -17,19 +17,18 @@ CREATE TABLE Renter (
 );
 
 CREATE TABLE Instrument (
-  instrumentID Varchar(6),
   serial_num Varchar(10),
   instrument Varchar(15),
   brand Varchar(10),
   cost double precision,
   status Varchar(8),
-  PRIMARY KEY (instrumentID)
+  PRIMARY KEY (serial_num)
 );
 
 CREATE TABLE Rented_Ticket (
   rent_id Varchar(6),
   customerID Varchar(6),
-  instrumentID Varchar(6),
+  serial_num Varchar(6),
   date_out date,
   due_back date,
   status Varchar(8),
@@ -37,5 +36,5 @@ CREATE TABLE Rented_Ticket (
   paid boolean,
   PRIMARY KEY (rent_id),
   foreign KEY (customerID) references Renter(customerID),
-  foreign KEY (instrumentID) references Instrument(instrumentID)
+  foreign KEY (serial_num) references Instrument(serial_num)
 );

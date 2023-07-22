@@ -1,9 +1,10 @@
 -- What customer is renting what instruments
-select Renter.parent_name, t.instrument, t.status
-from (select Instrument.instrument, customerID, RT.status
+select Renter.parent_name, Renter.student_name, t.instrument, t.serial_num, t.status
+from (select Instrument.instrument, customerID, RT.status, instrument.serial_num
         from Instrument
-        inner join Rented_Ticket RT on Instrument.instrumentID = RT.instrumentID) as t
-inner join Renter on t.customerID = Renter.customerID;
+        inner join Rented_Ticket RT on Instrument.serial_num = RT.serial_num) as t
+inner join Renter on t.customerID = Renter.customerID
+where student_name like "C%";
 
 -- Find a customers status on their rentals
 select Rented_Ticket.status, I.instrumentID, instrument, due_back
