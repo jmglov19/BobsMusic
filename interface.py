@@ -234,9 +234,14 @@ def show_records():
         print_customers = ''
         for customer in customers:
             print_customers += str(customer) + "\n"
-
-        query_label["text"] = print_customers
         
+        
+        itemsA = print_customers.split("\n")
+        #for i in itemsA:
+
+        #print(itemsA)
+        query_label["text"] = print_customers
+        item_combobox["values"] = itemsA
 
         conn.commit()
         conn.close()
@@ -284,6 +289,8 @@ def show_records():
                                     group by instrument"""
         query_format(open_instruments_query)
 
+    def execute_command():
+        items = []
     
     show_records_frame = tkinter.LabelFrame(frame, text= "Show Records")
     show_records_frame.grid(row= 1, column= 0, sticky= "news", padx= 20, pady= 10)
@@ -309,6 +316,16 @@ def show_records():
 
     show_open_instruments_btn = tkinter.Button(show_records_frame, text= "Show how many available instruments", command= show_open_instruments)
     show_open_instruments_btn.grid(row=3, column= 0)
+
+    items = []
+    item_combobox = ttk.Combobox(show_records_frame, values= items)
+    item_options = ttk.Combobox(show_records_frame, values = ["Returned", "Out", "Remove"])
+    item_execute = tkinter.Button(show_records_frame, text= "Execute", command= execute_command)
+
+    item_combobox.grid(row=3, column=1)
+    item_options.grid(row=3, column=2)
+    item_execute.grid(row=3, column= 3)
+
 
     instrument_button.grid(row=2, column=0)
     instrument_entry.grid(row=2, column= 1)
