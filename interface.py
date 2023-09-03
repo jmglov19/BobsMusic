@@ -16,6 +16,11 @@ def load_frame():
     if frame_choice == "Add Ticket":
         add_ticket_frame()
 
+def add_customers_csv():
+    return
+def add_instruments_csv():
+    return
+
 
 window = tkinter.Tk()
 window.title("Rental Program Database")
@@ -33,14 +38,22 @@ frame_selector.grid(row=0, column=0, sticky= "news", padx= 20, pady= 10)
 frames = ["New Instrument", "New Customer", "Show Records", "Add Ticket"]
 
 selector_combobox = ttk.Combobox(frame_selector, values= frames )
-selector_combobox.grid(row= 0, column= 0)
+selector_combobox.grid(row= 0, column= 0, padx= 20, pady= 10)
 
 selector_button = tkinter.Button(frame_selector, text= "Load Frame", command= load_frame)
-selector_button.grid(row=0, column=1)
+selector_button.grid(row=0, column=1, padx= 20, pady= 10)
+
+add_customers_csv_button = tkinter.Button(frame_selector, text= "Custmers CSV", command= add_customers_csv)
+add_instruments_csv_button = tkinter.Button(frame_selector, text= "Instruments CSV", command= add_instruments_csv)
+
+add_customers_csv_button.grid(row= 0, column= 2, padx= 20, pady= 10)
+add_instruments_csv_button.grid(row= 0, column= 3, padx= 20, pady= 10)
+
 
 
 # This frame is used for adding one instrument at a time to the data base. This can be useful for when only a new 
 # instruments need to be added it can be quickly done this way.
+
 def instrument_frame():
     def enter_instrument_data():
        
@@ -246,6 +259,13 @@ def show_records():
         conn.commit()
         conn.close()
     
+    def edit_fromat(edit):
+        conn = sqlite3.connect('test.db')
+        c = conn.cursor()  
+        c.execute(edit)
+        conn.commit()
+        conn.close()
+
     
 
     def show_customers():
@@ -259,18 +279,20 @@ def show_records():
                             FROM Renter
                             WHERE """ + search + """ LIKE '"""  + entry + """%'    
                     """
-            query_format(customer_info_query)    
+            query_format(customer_info_query)
+            item_actions["values"] = ["Remove"]
             
         
         elif option == "Tickets":
-            customer_ticket_query = """ select Renter.parent_name, Renter.student_name, t.instrument, t.serial_num, t.status
-                                from (select Instrument.instrument, customerID, RT.status, instrument.serial_num
+            customer_ticket_query = """ select Renter.parent_name, Renter.student_name, t.instrument, t.serial_num, t.status, t.paid, t.RentID
+                                from (select RT.rentID, Instrument.instrument, customerID, RT.status, instrument.serial_num, RT.paid
                                         from Instrument
                                         inner join Rented_Ticket RT on Instrument.serial_num = RT.serial_num) as t
                                 inner join Renter on t.customerID = Renter.customerID
                                 WHERE """ + search + """ LIKE '"""  + entry + """%'    
                         """
             query_format(customer_ticket_query)
+            item_actions["values"] = ["Returned", "Out", "Remove", "Paid", "Not Paid"]
 
 
     def show_instruments():  
@@ -290,7 +312,41 @@ def show_records():
         query_format(open_instruments_query)
 
     def execute_command():
-        items = []
+        edit = ""
+        customer_option = customer_info_combobox.get()
+        if customer_option == "Information":
+            id = item_combobox.get()
+            id = id.split("'", 2)[1]
+            #print(id)
+           
+            command = item_actions.get()
+            if command == "Remove":
+                edit = "DELETE FROM Renter WHERE customerID = '" + id + "';"
+                edit_fromat(edit)
+                edit = "DELETE FROM Rented_Ticket WHERE customerID = '" + id + "';"
+                edit_fromat(edit)
+            
+            show_customers()
+
+
+        elif customer_option == "Tickets":
+            id = item_combobox.get()
+            id = id[-10:-2]
+            #print(id)
+            command = item_actions.get()
+            if command == "Returned":
+                edit = "UPDATE Rented_Ticket SET status = 'Returned' WHERE rentID = '" + id + "';"
+            if command == "Out":
+                edit = "UPDATE Rented_Ticket SET status = 'Out' WHERE rentID = '" + id + "';"
+            if command == "Paid":
+                edit = "UPDATE Rented_Ticket SET paid = 'Paid' WHERE rentID = '" + id + "';"
+            if command == "Not Paid":
+                edit = "UPDATE Rented_Ticket SET paid = 'Not Paid' WHERE rentID = '" + id + "';"
+            if command == "Remove":
+                edit = "DELETE FROM Rented_Ticket WHERE rentID = '" + id + "';"
+            
+            edit_fromat(edit)
+            show_customers()
     
     show_records_frame = tkinter.LabelFrame(frame, text= "Show Records")
     show_records_frame.grid(row= 1, column= 0, sticky= "news", padx= 20, pady= 10)
@@ -318,12 +374,13 @@ def show_records():
     show_open_instruments_btn.grid(row=3, column= 0)
 
     items = []
+    actions = []
     item_combobox = ttk.Combobox(show_records_frame, values= items)
-    item_options = ttk.Combobox(show_records_frame, values = ["Returned", "Out", "Remove"])
+    item_actions = ttk.Combobox(show_records_frame, values = actions)
     item_execute = tkinter.Button(show_records_frame, text= "Execute", command= execute_command)
 
     item_combobox.grid(row=3, column=1)
-    item_options.grid(row=3, column=2)
+    item_actions.grid(row=3, column=2)
     item_execute.grid(row=3, column= 3)
 
 
