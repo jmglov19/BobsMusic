@@ -16,10 +16,10 @@ def load_frame():
     if frame_choice == "Add Ticket":
         add_ticket_frame()
 
-def add_customers_csv():
-    return
-def add_instruments_csv():
-    return
+#def add_customers_csv():
+    #return
+#def add_instruments_csv():
+    #return
 
 
 window = tkinter.Tk()
@@ -43,11 +43,11 @@ selector_combobox.grid(row= 0, column= 0, padx= 20, pady= 10)
 selector_button = tkinter.Button(frame_selector, text= "Load Frame", command= load_frame)
 selector_button.grid(row=0, column=1, padx= 20, pady= 10)
 
-add_customers_csv_button = tkinter.Button(frame_selector, text= "Custmers CSV", command= add_customers_csv)
-add_instruments_csv_button = tkinter.Button(frame_selector, text= "Instruments CSV", command= add_instruments_csv)
+#add_customers_csv_button = tkinter.Button(frame_selector, text= "Custmers CSV", command= add_customers_csv)
+#add_instruments_csv_button = tkinter.Button(frame_selector, text= "Instruments CSV", command= add_instruments_csv)
 
-add_customers_csv_button.grid(row= 0, column= 2, padx= 20, pady= 10)
-add_instruments_csv_button.grid(row= 0, column= 3, padx= 20, pady= 10)
+#add_customers_csv_button.grid(row= 0, column= 2, padx= 20, pady= 10)
+#add_instruments_csv_button.grid(row= 0, column= 3, padx= 20, pady= 10)
 
 
 
@@ -62,10 +62,10 @@ def instrument_frame():
         instrument_type = instrument_combobox.get()
         brand = brand_entry.get()
 
-        if (instrument_type == "Alto Saxophone"):
-            cost = 169.00
-        else:
-            cost = 139.00
+        #if (instrument_type == "Alto Saxophone"):
+            #cost = 169.00
+        #else:
+            #cost = 139.00
         status = status_combobox.get()
 
 
@@ -73,18 +73,17 @@ def instrument_frame():
         table_create_query = '''CREATE TABLE IF NOT EXISTS Instrument (                        
                                     serial_num Varchar(10),
                                     instrument Varchar(15),
-                                    brand Varchar(10),
-                                    cost double precision,
+                                    brand Varchar(10),                                    
                                     status Varchar(8),
                                     PRIMARY KEY (serial_num)
                                 );'''
         conn.execute(table_create_query)
         
         # Insert Data
-        insert_data_query = '''Insert INTO Instrument (serial_num, instrument, brand, cost, status) VALUES
-                            ( ?, ?, ?, ?, ?)'''
+        insert_data_query = '''Insert INTO Instrument (serial_num, instrument, brand, status) VALUES
+                            ( ?, ?, ?, ?)'''
         
-        data_tuple = (serial_num, instrument_type, brand, cost, status)
+        data_tuple = (serial_num, instrument_type, brand,status)
         
         cursor = conn.cursor()
         cursor.execute(insert_data_query, data_tuple)
@@ -147,13 +146,13 @@ def new_customer_frame():
         conn = sqlite3.connect('test.db')
         customer_table_create_query = '''CREATE TABLE IF NOT EXISTS Renter (
                                 customerID Varchar(8),
-                                parent_name Varchar(20),
-                                student_name Varchar(20),
-                                street Varchar(20),
-                                city Varchar(10),
+                                parent_name Varchar(25),
+                                student_name Varchar(25),
+                                street Varchar(25),
+                                city Varchar(20),
                                 zipcode Varchar(5),
-                                home_phone Varchar(10),
-                                work_phone Varchar(10),
+                                home_phone Varchar(20),
+                                work_phone Varchar(20),
                                 school Varchar(15),
                                 PRIMARY KEY (customerID)
                                 );'''
@@ -275,7 +274,7 @@ def show_records():
         option = customer_info_combobox.get()
 
         if option == "Information":   
-            customer_info_query = """ SELECT *   
+            customer_info_query = """ SELECT parent_name, student_name, street, city, zipcode, school, home_phone   
                             FROM Renter
                             WHERE """ + search + """ LIKE '"""  + entry + """%'    
                     """
@@ -284,7 +283,7 @@ def show_records():
             
         
         elif option == "Tickets":
-            customer_ticket_query = """ select Renter.parent_name, Renter.student_name, t.instrument, t.serial_num, t.status, t.paid, t.RentID
+            customer_ticket_query = """ select Renter.parent_name, Renter.student_name, t.instrument, t.serial_num, t.status, t.paid
                                 from (select RT.rentID, Instrument.instrument, customerID, RT.status, instrument.serial_num, RT.paid
                                         from Instrument
                                         inner join Rented_Ticket RT on Instrument.serial_num = RT.serial_num) as t
@@ -295,14 +294,18 @@ def show_records():
             item_actions["values"] = ["Returned", "Out", "Remove", "Paid", "Not Paid"]
 
 
-    def show_instruments():  
-        instrument = instrument_entry.get()
+    def show_instruments(): 
+        instrument_search = instrument_option_combobox.get()
+        #instrument_option_combobox.set('')
+        search = instrument_entry.get()
         instrument_entry.delete(0, 20)
-        insrument_query = """ SELECT *
-                            FROM Instrument
-                            Where instrument LIKE '""" + instrument + """%' 
+
+
+        insrument_query = """SELECT *
+                            FROM  Instrument
+                            Where """ + instrument_search + """ LIKE '""" + search + """%' 
                             Limit 10      
-        """
+            """
         query_format(insrument_query)
 
     def show_open_instruments():
@@ -364,14 +367,15 @@ def show_records():
     customer_entry.grid(row=1, column=3)
 
 
-
+    
     instrument_button = tkinter.Button(show_records_frame, text="Search Instruments", command= show_instruments)
+    instrument_option_combobox = ttk.Combobox(show_records_frame, values=["instrument", "serial_num", "brand"])
     instrument_entry = tkinter.Entry(show_records_frame)
 
     
 
     show_open_instruments_btn = tkinter.Button(show_records_frame, text= "Show how many available instruments", command= show_open_instruments)
-    show_open_instruments_btn.grid(row=3, column= 0)
+    show_open_instruments_btn.grid(row=2, column= 3)
 
     items = []
     actions = []
@@ -385,7 +389,8 @@ def show_records():
 
 
     instrument_button.grid(row=2, column=0)
-    instrument_entry.grid(row=2, column= 1)
+    instrument_option_combobox.grid(row=2, column= 1)
+    instrument_entry.grid(row=2, column= 2)
     query_label = tkinter.Label(show_records_frame, text= "")
     query_label.grid(row=4, column=0, columnspan=4, padx= 10, pady= 10)
 
@@ -455,33 +460,31 @@ def add_ticket_frame():
             serial_num = serial_num[1:]
             serial_num = serial_num[:-1]
 
-        date_out = date_out_entry.get()
-        due_back = due_back_entry.get()
+        semester = semester_combobox.get()
         status = status_combobox.get()
-        total_cost = cost_entry.get()
+        #total_cost = cost_entry.get()
         paid = paid_status_var.get()
 
         student_entry.delete(0, 20)
         instrument_entry.delete(0, 20)
         instrument_combobox.set('')
         student_combobox.set('')
-        date_out_entry.delete(0,20)
-        due_back_entry.delete(0, 20)
-        cost_entry.delete(0, 20)
+        semester_combobox.set('')
+        #due_back_entry.delete(0, 20)
+        #cost_entry.delete(0, 20)
         status_combobox.set('')
         paid_check.deselect()
 
         
 
         conn = sqlite3.connect('test.db')
+        print("Connected")
         rented_table_create_query = """CREATE TABLE IF NOT EXISTS Rented_Ticket (
                                 rentID Varchar(8),
                                 customerID Varchar(6),
                                 serial_num Varchar(6),
-                                date_out date,
-                                due_back date,
+                                semester varchar(10),
                                 status Varchar(8),
-                                total_cost double,
                                 paid varchar(8),
                                 PRIMARY KEY (rentID),
                                 foreign KEY (customerID) references Renter(customerID),
@@ -491,11 +494,11 @@ def add_ticket_frame():
         conn.execute(rented_table_create_query)
         
         # Insert Data Query
-        new_ticket_query = '''Insert INTO Rented_Ticket (rentID, customerID, serial_num, date_out, due_back, status, total_cost,
+        new_ticket_query = '''Insert INTO Rented_Ticket (rentID, customerID, serial_num, semester, status,
                                 paid) VALUES
-                            (?, ?, ?, ?, ?, ?, ?, ?)'''
+                            (?, ?, ?, ?, ?, ?)'''
         
-        data_tuple = (rentID, customerID, serial_num, date_out, due_back, status, total_cost, paid)
+        data_tuple = (rentID, customerID, serial_num, semester, status, paid)
 
         # Change instrument to out query
         change_instrument_status = """ UPDATE instrument
@@ -527,18 +530,18 @@ def add_ticket_frame():
     find_instrument_btn = tkinter.Button(ticket_frame, text= "Find Instrument", command= find_instrument)
 
     # Ticket info
-    date_out_label = tkinter.Label(ticket_frame, text= "Date Out (yyyy-mm-dd)")
-    date_out_entry = tkinter.Entry(ticket_frame)
-    due_back_label = tkinter.Label(ticket_frame, text= "Due Back (yyyy-mm-dd)")
-    due_back_entry = tkinter.Entry(ticket_frame)
+    semester_label = tkinter.Label(ticket_frame, text= "Semester")
+    semesters = ["Sch23-24", "Sum24", "Sch24-25"]
+    semester_combobox = ttk.Combobox(ticket_frame, values= semesters)
+    
 
     # Status
     status_label = tkinter.Label(ticket_frame, text= "Status")
     status_combobox = ttk.Combobox(ticket_frame, values= ["Out", "Retuned", "Late"])
 
     # Cost
-    cost_label = tkinter.Label(ticket_frame, text= "Cost")
-    cost_entry = tkinter.Entry(ticket_frame)
+    #cost_label = tkinter.Label(ticket_frame, text= "Cost")
+    #cost_entry = tkinter.Entry(ticket_frame)
 
     # Paid Status
     paid_status_var = tkinter.StringVar(value="Not Paid")
@@ -557,14 +560,10 @@ def add_ticket_frame():
     instrument_entry.grid(row= 1, column= 2)
     find_instrument_btn.grid(row= 0, column=3)
     instrument_combobox.grid(row= 1, column=3, columnspan= 4)  
-    date_out_label.grid(row=2, column=0)
-    date_out_entry.grid(row=3, column=0)
-    due_back_label.grid(row=2, column=1)
-    due_back_entry.grid(row=3, column=1)
+    semester_label.grid(row=2, column=0)
+    semester_combobox.grid(row=3, column=0)
     status_label.grid(row=2, column=2)
     status_combobox.grid(row=3, column=2)
-    cost_label.grid(row=2, column=3)
-    cost_entry.grid(row=3, column=3)
     paid_check.grid(row= 4, column=0)
 
     # Create Ticket Button

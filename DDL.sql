@@ -4,14 +4,14 @@ drop table if EXISTS Rented_Ticket;
 
 
 CREATE TABLE Renter (
-  customerID Varchar(6),
-  parent_name Varchar(20),
-  student_name Varchar(20),
-  street Varchar(20),
-  city Varchar(10),
+  customerID Varchar(8),
+  parent_name Varchar(25),
+  student_name Varchar(25),
+  street Varchar(25),
+  city Varchar(20),
   zipcode Varchar(5),
-  home_phone Varchar(10),
-  work_phone Varchar(10),
+  home_phone Varchar(20),
+  work_phone Varchar(20),
   school Varchar(15),
   PRIMARY KEY (customerID)
 );
@@ -19,22 +19,19 @@ CREATE TABLE Renter (
 CREATE TABLE Instrument (
   serial_num Varchar(10),
   instrument Varchar(15),
-  brand Varchar(10),
-  cost double precision,
+  brand Varchar(10),                                    
   status Varchar(8),
   PRIMARY KEY (serial_num)
 );
 
 CREATE TABLE Rented_Ticket (
-  rent_id Varchar(6),
+  rentID Varchar(8),
   customerID Varchar(6),
   serial_num Varchar(6),
-  date_out date,
-  due_back date,
+  semester varchar(10),
   status Varchar(8),
-  total_cost double,
-  paid boolean,
-  PRIMARY KEY (rent_id),
+  paid varchar(8),
+  PRIMARY KEY (rentID),
   foreign KEY (customerID) references Renter(customerID),
   foreign KEY (serial_num) references Instrument(serial_num)
 );
