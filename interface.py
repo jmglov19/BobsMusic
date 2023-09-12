@@ -3,6 +3,7 @@ import random
 from tkinter import ttk
 import sqlite3
 import secrets
+import pyodbc
 
 def load_frame():
     frame_choice = selector_combobox.get()
@@ -68,8 +69,8 @@ def instrument_frame():
             #cost = 139.00
         status = status_combobox.get()
 
-
-        conn = sqlite3.connect('test.db')
+        conn = pyodbc.connect("DRIVER={ODBC Driver 17 for SQL Server}; SERVER=192.168.1.201, 1433;DATABASE=master;UID=user;PWD=Nellie0)")
+        #conn = sqlite3.connect('test.db')
         table_create_query = '''CREATE TABLE IF NOT EXISTS Instrument (                        
                                     serial_num Varchar(10),
                                     instrument Varchar(15),
@@ -77,7 +78,7 @@ def instrument_frame():
                                     status Varchar(8),
                                     PRIMARY KEY (serial_num)
                                 );'''
-        conn.execute(table_create_query)
+        #conn.execute(table_create_query)
         
         # Insert Data
         insert_data_query = '''Insert INTO Instrument (serial_num, instrument, brand, status) VALUES
@@ -143,7 +144,8 @@ def new_customer_frame():
         workphone = workphone_entry.get()
         school = school_entry.get()
 
-        conn = sqlite3.connect('test.db')
+        conn = pyodbc.connect("DRIVER={ODBC Driver 17 for SQL Server}; SERVER=192.168.1.201, 1433;DATABASE=master;UID=user;PWD=Nellie0)")
+        #conn = sqlite3.connect('test.db')
         customer_table_create_query = '''CREATE TABLE IF NOT EXISTS Renter (
                                 customerID Varchar(8),
                                 parent_name Varchar(25),
@@ -156,7 +158,7 @@ def new_customer_frame():
                                 school Varchar(15),
                                 PRIMARY KEY (customerID)
                                 );'''
-        conn.execute(customer_table_create_query)
+        #conn.execute(customer_table_create_query)
         
         # Insert Data
         insert_data_query = '''Insert INTO Renter (customerID, parent_name, student_name, street, city, zipcode, home_phone,
@@ -238,7 +240,8 @@ def new_customer_frame():
 def show_records():
     
     def query_format(query):
-        conn = sqlite3.connect('test.db')
+        conn = pyodbc.connect("DRIVER={ODBC Driver 17 for SQL Server}; SERVER=192.168.1.201, 1433;DATABASE=master;UID=user;PWD=Nellie0)")
+        #conn = sqlite3.connect('test.db')
         c = conn.cursor()  
         c.execute(query)
         customers = c.fetchall()
@@ -283,7 +286,7 @@ def show_records():
             
         
         elif option == "Tickets":
-            customer_ticket_query = """ select Renter.parent_name, Renter.student_name, t.instrument, t.serial_num, t.status, t.paid
+            customer_ticket_query = """ select Renter.parent_name, Renter.student_name, t.instrument, t.serial_num, t.status, t.paid, t.rentID
                                 from (select RT.rentID, Instrument.instrument, customerID, RT.status, instrument.serial_num, RT.paid
                                         from Instrument
                                         inner join Rented_Ticket RT on Instrument.serial_num = RT.serial_num) as t
@@ -335,7 +338,8 @@ def show_records():
         elif customer_option == "Tickets":
             id = item_combobox.get()
             id = id[-10:-2]
-            #print(id)
+            print(id)
+            
             command = item_actions.get()
             if command == "Returned":
                 edit = "UPDATE Rented_Ticket SET status = 'Returned' WHERE rentID = '" + id + "';"
@@ -347,8 +351,9 @@ def show_records():
                 edit = "UPDATE Rented_Ticket SET paid = 'Not Paid' WHERE rentID = '" + id + "';"
             if command == "Remove":
                 edit = "DELETE FROM Rented_Ticket WHERE rentID = '" + id + "';"
-            
+                print("delete")
             edit_fromat(edit)
+            print("execute")
             show_customers()
     
     show_records_frame = tkinter.LabelFrame(frame, text= "Show Records")
@@ -406,7 +411,8 @@ def add_ticket_frame():
     
     # Query format used to find students and instruments
     def query_format(query):
-        conn = sqlite3.connect('test.db')
+        conn = pyodbc.connect("DRIVER={ODBC Driver 17 for SQL Server}; SERVER=192.168.1.201, 1433;DATABASE=master;UID=user;PWD=Nellie0)")
+        #conn = sqlite3.connect('test.db')
         c = conn.cursor()  
         c.execute(query)
         info = c.fetchall()
@@ -435,7 +441,7 @@ def add_ticket_frame():
         instrument = instrument_entry.get()
         insrument_query = """ SELECT instrument, serial_num
                             FROM Instrument
-                            Where instrument LIKE '""" + instrument + """%' and status == 'Ready'      
+                            Where instrument LIKE '""" + instrument + """%' and status = 'Ready'      
         """
         found_instruments = query_format(insrument_query)
         instrument_combobox["values"] = found_instruments
@@ -446,19 +452,22 @@ def add_ticket_frame():
         rentID = secrets.token_hex(4)
         # Get the selecected Customer ID      
         customer = student_combobox.get()
-        customerID = customer.split()[0]
+        customerID = customer.split("'")[1]
         # Get the selected Instrument ID
         selected_instrument = instrument_combobox.get()
 
-        if selected_instrument[0] == '{':
-            serial_num = selected_instrument.split('} ', 1)[1]
+        serial_num = selected_instrument.split("'",3)[3]
+        serial_num = serial_num[:-2]
 
-        else:   
-            serial_num = selected_instrument.split()[1]
+       # if selected_instrument[0] == "'":
+       #     serial_num = selected_instrument.split(",")[1]
 
-        if serial_num[0] == "{":
-            serial_num = serial_num[1:]
-            serial_num = serial_num[:-1]
+       # else:   
+       #     serial_num = selected_instrument.split()[1]
+
+       # if serial_num[0] == "'":
+       #     serial_num = serial_num[1:]
+       #     serial_num = serial_num[:-1]
 
         semester = semester_combobox.get()
         status = status_combobox.get()
@@ -476,13 +485,13 @@ def add_ticket_frame():
         paid_check.deselect()
 
         
-
-        conn = sqlite3.connect('test.db')
+        conn = pyodbc.connect("DRIVER={ODBC Driver 17 for SQL Server}; SERVER=192.168.1.201, 1433;DATABASE=master;UID=user;PWD=Nellie0)")
+        #conn = sqlite3.connect('test.db')
         print("Connected")
         rented_table_create_query = """CREATE TABLE IF NOT EXISTS Rented_Ticket (
                                 rentID Varchar(8),
-                                customerID Varchar(6),
-                                serial_num Varchar(6),
+                                customerID Varchar(8),
+                                serial_num Varchar(10),
                                 semester varchar(10),
                                 status Varchar(8),
                                 paid varchar(8),
@@ -491,19 +500,23 @@ def add_ticket_frame():
                                 foreign KEY (serial_num) references Instrument(serial_num)
                                 );
                             """
-        conn.execute(rented_table_create_query)
+        #conn.execute(rented_table_create_query)
         
         # Insert Data Query
         new_ticket_query = '''Insert INTO Rented_Ticket (rentID, customerID, serial_num, semester, status,
                                 paid) VALUES
                             (?, ?, ?, ?, ?, ?)'''
         
-        data_tuple = (rentID, customerID, serial_num, semester, status, paid)
 
+        #data_tuple = (customerID, parent, student, street, city, zipcode, homephone, workphone, school)
+        data_tuple_test = (rentID, semester, serial_num)
+        data_tuple = (rentID, customerID, serial_num, semester, status, paid)
+        print(data_tuple_test)
+        print(data_tuple)
         # Change instrument to out query
         change_instrument_status = """ UPDATE instrument
-                            SET status = "Out"
-                            Where serial_num == '""" + serial_num + """'     
+                            SET status = 'Out'
+                            Where serial_num = '""" + serial_num + """'     
                             """
 
        

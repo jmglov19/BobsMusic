@@ -26,8 +26,8 @@ CREATE TABLE Instrument (
 
 CREATE TABLE Rented_Ticket (
   rentID Varchar(8),
-  customerID Varchar(6),
-  serial_num Varchar(6),
+  customerID Varchar(8),
+  serial_num Varchar(10),
   semester varchar(10),
   status Varchar(8),
   paid varchar(8),
