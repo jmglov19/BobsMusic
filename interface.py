@@ -71,17 +71,10 @@ def instrument_frame():
 
         conn = pyodbc.connect("DRIVER={ODBC Driver 17 for SQL Server}; SERVER=192.168.1.201, 1433;DATABASE=master;UID=user;PWD=Nellie0)")
         #conn = sqlite3.connect('test.db')
-        table_create_query = '''CREATE TABLE IF NOT EXISTS Instrument (                        
-                                    serial_num Varchar(10),
-                                    instrument Varchar(15),
-                                    brand Varchar(10),                                    
-                                    status Varchar(8),
-                                    PRIMARY KEY (serial_num)
-                                );'''
-        #conn.execute(table_create_query)
+        
         
         # Insert Data
-        insert_data_query = '''Insert INTO Instrument (serial_num, instrument, brand, status) VALUES
+        insert_data_query = '''Insert INTO Instrument (serial_num, instrument, brand) VALUES
                             ( ?, ?, ?, ?)'''
         
         data_tuple = (serial_num, instrument_type, brand,status)
@@ -146,19 +139,7 @@ def new_customer_frame():
 
         conn = pyodbc.connect("DRIVER={ODBC Driver 17 for SQL Server}; SERVER=192.168.1.201, 1433;DATABASE=master;UID=user;PWD=Nellie0)")
         #conn = sqlite3.connect('test.db')
-        customer_table_create_query = '''CREATE TABLE IF NOT EXISTS Renter (
-                                customerID Varchar(8),
-                                parent_name Varchar(25),
-                                student_name Varchar(25),
-                                street Varchar(25),
-                                city Varchar(20),
-                                zipcode Varchar(5),
-                                home_phone Varchar(20),
-                                work_phone Varchar(20),
-                                school Varchar(15),
-                                PRIMARY KEY (customerID)
-                                );'''
-        #conn.execute(customer_table_create_query)
+        
         
         # Insert Data
         insert_data_query = '''Insert INTO Renter (customerID, parent_name, student_name, street, city, zipcode, home_phone,
@@ -303,20 +284,21 @@ def show_records():
         #instrument_option_combobox.set('')
         search = instrument_entry.get()
         instrument_entry.delete(0, 20)
+        customer_info_combobox.set('')
+        item_actions["values"] = ["Repair", "Ready", "Delete"]
 
 
-        insrument_query = """SELECT *
+        insrument_query = """SELECT TOP 10*
                             FROM  Instrument
-                            Where """ + instrument_search + """ LIKE '""" + search + """%' 
-                            Limit 10      
+                            Where """ + instrument_search + """ LIKE '""" + search + """%'                                 
             """
         query_format(insrument_query)
 
-    def show_open_instruments():
-        open_instruments_query = """ select instrument, count() from Instrument
-                                    where status = 'Ready'
-                                    group by instrument"""
-        query_format(open_instruments_query)
+    #def show_open_instruments():
+        #open_instruments_query = """ select instrument, count() from Instrument
+                                    #where status = 'Ready'
+                                    #group by instrument"""
+        #query_format(open_instruments_query)
 
     def execute_command():
         edit = ""
@@ -356,6 +338,24 @@ def show_records():
             edit_fromat(edit)
             print("execute")
             show_customers()
+        
+        elif instrument_option_combobox != '':
+            serial_num = item_combobox.get()
+            serial_num = serial_num.split("'",3)[1]
+            #serial_num = serial_num[:-2]
+            command = item_actions.get()
+            if command == "Repair":
+                edit = "INSERT INTO Repairs Values ('" + serial_num + "', 'Repair');"
+            if command == "Ready":
+                edit = "DELETE FROM Repairs WHERE serial_num = '" + serial_num + "';"
+            if command == "Delete":
+                edit = "DELETE FROM Instrument WHERE serial_num = '" + serial_num + "';"
+
+            edit_fromat(edit)
+            print("execute")
+            show_customers()
+            
+            
     
     show_records_frame = tkinter.LabelFrame(frame, text= "Show Records")
     show_records_frame.grid(row= 1, column= 0, sticky= "news", padx= 20, pady= 10)
@@ -380,8 +380,8 @@ def show_records():
 
     
 
-    show_open_instruments_btn = tkinter.Button(show_records_frame, text= "Show how many available instruments", command= show_open_instruments)
-    show_open_instruments_btn.grid(row=2, column= 3)
+    #show_open_instruments_btn = tkinter.Button(show_records_frame, text= "Show how many available instruments", command= show_open_instruments)
+    #show_open_instruments_btn.grid(row=2, column= 3)
 
     items = []
     actions = []
@@ -442,7 +442,10 @@ def add_ticket_frame():
         instrument = instrument_entry.get()
         insrument_query = """ SELECT instrument, serial_num
                             FROM Instrument
-                            Where instrument LIKE '""" + instrument + """%' and status = 'Ready'      
+                            Where instrument LIKE '""" + instrument + """%' 
+                            and serial_num NOT IN (SELECT serial_num from Repairs)
+                            and serial_num NOT IN (SELECT serial_num from Rented_Ticket);
+
         """
         found_instruments = query_format(insrument_query)
         instrument_combobox["values"] = found_instruments
