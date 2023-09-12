@@ -20,7 +20,6 @@ CREATE TABLE Instrument (
   serial_num Varchar(10),
   instrument Varchar(15),
   brand Varchar(10),                                    
-  status Varchar(8),
   PRIMARY KEY (serial_num)
 );
 
@@ -33,5 +32,12 @@ CREATE TABLE Rented_Ticket (
   paid varchar(8),
   PRIMARY KEY (rentID),
   foreign KEY (customerID) references Renter(customerID),
+  foreign KEY (serial_num) references Instrument(serial_num)
+);
+
+CREATE TABLE Repairs (
+  serial_num Varchar(10),
+  Description Text,
+  PRIMARY KEY (serial_num),
   foreign KEY (serial_num) references Instrument(serial_num)
 );

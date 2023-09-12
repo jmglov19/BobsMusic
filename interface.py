@@ -262,7 +262,8 @@ def show_records():
         conn.close()
     
     def edit_fromat(edit):
-        conn = sqlite3.connect('test.db')
+        conn = pyodbc.connect("DRIVER={ODBC Driver 17 for SQL Server}; SERVER=192.168.1.201, 1433;DATABASE=master;UID=user;PWD=Nellie0)")
+        #conn = sqlite3.connect('test.db')
         c = conn.cursor()  
         c.execute(edit)
         conn.commit()
@@ -488,19 +489,7 @@ def add_ticket_frame():
         conn = pyodbc.connect("DRIVER={ODBC Driver 17 for SQL Server}; SERVER=192.168.1.201, 1433;DATABASE=master;UID=user;PWD=Nellie0)")
         #conn = sqlite3.connect('test.db')
         print("Connected")
-        rented_table_create_query = """CREATE TABLE IF NOT EXISTS Rented_Ticket (
-                                rentID Varchar(8),
-                                customerID Varchar(8),
-                                serial_num Varchar(10),
-                                semester varchar(10),
-                                status Varchar(8),
-                                paid varchar(8),
-                                PRIMARY KEY (rentID),
-                                foreign KEY (customerID) references Renter(customerID),
-                                foreign KEY (serial_num) references Instrument(serial_num)
-                                );
-                            """
-        #conn.execute(rented_table_create_query)
+        
         
         # Insert Data Query
         new_ticket_query = '''Insert INTO Rented_Ticket (rentID, customerID, serial_num, semester, status,
@@ -523,7 +512,7 @@ def add_ticket_frame():
         # Conn Cursor  
         cursor = conn.cursor()
         cursor.execute(new_ticket_query, data_tuple)
-        cursor.execute(change_instrument_status)
+        #cursor.execute(change_instrument_status)
         conn.commit()
         conn.close()
         
